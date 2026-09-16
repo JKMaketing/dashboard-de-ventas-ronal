@@ -72,9 +72,13 @@ if not all_rows:
     print('ERROR: no rows fetched — aborting', file=sys.stderr)
     sys.exit(1)
 
-raw_str = 'const RAW=[\n' + ',\n'.join(
-    json.dumps(r, ensure_ascii=False) for r in all_rows
-) + '\n];'
+def row_to_bundled(r):
+    # The HTML file stores JS inside a JSON-encoded string, so:
+    # - use literal \n (2 chars) as line separator, not actual newlines
+    # - escape " as \" (2 chars), not literal double-quotes
+    return json.dumps(r, ensure_ascii=False, separators=(',', ':')).replace('"', '\\"')
+
+raw_str = 'const RAW=[\\n' + ',\\n'.join(row_to_bundled(r) for r in all_rows) + '\\n];'
 
 with open('index.html', 'r', encoding='utf-8') as f:
     content = f.read()
